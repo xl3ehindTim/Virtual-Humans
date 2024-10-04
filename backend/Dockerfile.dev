@@ -11,6 +11,9 @@ RUN apt-get update && apt-get install -y \
     libharfbuzz0b \
     libpangoft2-1.0-0 \
     gettext \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
  && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
@@ -20,7 +23,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY ./check-postgres.py /tmp/check-postgres.py
 RUN chmod a+x /tmp/check-postgres.py
 
- # Copy the current directory contents into the container at /app
+# Copy the current directory contents into the container at /app
 COPY src/ .
 
 EXPOSE 8000
