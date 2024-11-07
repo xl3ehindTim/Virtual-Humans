@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "users",
+    "analytics",
 ]
 
 MIDDLEWARE = [
@@ -43,6 +44,12 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
 ]
+
+# VIRTUAL_HUMAN_MIDDLEWARE = [
+#     "analytics.business_logic.FaceDetectionMiddleware",
+#     "analytics.business_logic.EmotionMiddleware",
+#     "analytics.business_logic.TextMiddleware",
+# ]
 
 ROOT_URLCONF = "virtual_humans.urls"
 
