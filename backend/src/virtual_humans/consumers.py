@@ -1,8 +1,5 @@
 from channels.generic.websocket import WebsocketConsumer
 
-from rest_framework import serializers
-
-from analytics.models import Event
 from analytics.serializers import ImageSerializer
 from analytics.utils import decode_base64_frame
 from analytics.event_handler import EventHandler
@@ -72,7 +69,10 @@ class VirtualHumanConsumer(WebsocketConsumer):
 
             for face_encoding in face_encodings:
                 matches = face_recognition.compare_faces(
-                    known_face_encodings, face_encoding, tolerance=0.5)
+                    known_face_encodings, face_encoding, tolerance=0.7)
+
+                print(matches)
+                print(known_face_encodings)
 
                 if True in matches:
                     # Get the index of the first True match
