@@ -7,16 +7,16 @@ from django.utils import timezone
 
 def process_emotions(params):
     payload = params.get("payload")
-    raw_data = payload.get("data")
+    data = payload.get("data")
 
-    emotions = emotion_service.detect_emotions(raw_data)
-
+    emotions = emotion_service.detect_emotions(data)
+    
     payload = {
         'type': 'emotion.analysis', 
         'payload': {
             'data': emotions,
-            'timestamp': timezone.now().isoformat()
-        }
+        },
+        'timestamp': timezone.now().isoformat()
     }
 
     event_bus.publish("emotion.analysis", payload)
@@ -24,7 +24,6 @@ def process_emotions(params):
 
 def save_event(params):
     """ Save event to database """
-    print(params)
     Event.objects.create(
         event_type=params.get("type"),
         timestamp=params.get("timestamp"),

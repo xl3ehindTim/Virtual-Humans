@@ -24,7 +24,7 @@ class EmotionService:
 
     def base64_to_frame(self, base64_string: str):
         """
-        Convert base64-encoded string back to a frame.
+        Convert base64-encoded string back to a frame
         """
         frame_bytes = base64.b64decode(base64_string)
 
@@ -35,7 +35,7 @@ class EmotionService:
     
     def detect_emotions(self, base64_string: str):
         """
-        Detect emotions from a base64-encoded image string.
+        Detect emotions
         """
         frame = self.base64_to_frame(base64_string)
         emotions = self.detector.detect_emotions(frame)

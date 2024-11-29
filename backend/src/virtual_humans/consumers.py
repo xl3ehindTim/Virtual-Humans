@@ -31,8 +31,9 @@ class VirtualHumanConsumer(WebsocketConsumer):
         # Parse text_data to JSON
         data = json.loads(text_data)
         type = data.get("type")
+        
         # data.pop("type", None)
-
+        
         # TODO: Validation
 
         # Build event payload
