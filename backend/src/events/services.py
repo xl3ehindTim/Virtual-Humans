@@ -12,7 +12,7 @@ class ChatGPTService:
         pass
 
 
-class FacialRecognitionService:
+class FaceRecognitionService:
     """
     Service for processing image frames to detect and recognize faces using facial recognition.
     
@@ -20,6 +20,9 @@ class FacialRecognitionService:
     encodings. It maintains a list of known face encodings to avoid redundant database queries 
     and to optimize performance by reducing unnecessary load times. The service can detect both 
     recognized and unrecognized faces.
+
+    Methods:
+        - detect_and_recognize_faces: Analyze emotions in a provided image.
     """
 
     def __init__(self, face_locations_model="hog", face_encodings_model="small", number_of_times_to_upsample=1, tolerance=0.5):
@@ -31,7 +34,7 @@ class FacialRecognitionService:
         # TODO: Fetch existing from database
         self.known_face_encodings = []
 
-    def process_frame(self, base64_string: str):
+    def detect_and_recognize_faces(self, base64_string: str):
         """
         Process image frame to detect and recognize faces.
         """
@@ -87,4 +90,4 @@ class EmotionService:
     
 
 emotion_service = EmotionService()
-facial_recognition_service = FacialRecognitionService()
+face_recognition_service = FaceRecognitionService()
