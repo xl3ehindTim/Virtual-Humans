@@ -22,18 +22,21 @@ def process_emotions(params):
     event_bus.publish("emotion.analysis", payload)
 
 
-event_bus.subscribe("event.image", process_emotions)
-event_bus.start_listener("event.image")
-
-
-
 def save_event(params):
     """ Save event to database """
+    print(params)
     Event.objects.create(
         event_type=params.get("type"),
         timestamp=params.get("timestamp"),
         data=params.get("payload"),
     )
 
-event_bus.subscribe("event.save", save_event)
-event_bus.start_listener("event.save")
+
+def initialize_listeners():
+    # Subscribe handlers
+    event_bus.subscribe("event.image", process_emotions)
+    event_bus.subscribe("event.save", save_event)
+
+    # Start listeners
+    event_bus.start_listener("event.image")
+    event_bus.start_listener("event.save")

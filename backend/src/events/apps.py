@@ -7,6 +7,7 @@ class EventsConfig(AppConfig):
 
     def ready(self) -> None:
         """
-        Override app configuration to load consumers
+        Override app configuration to initialize consumers
         """
-        import events.consumers
+        from events.consumers import initialize_listeners
+        initialize_listeners()
