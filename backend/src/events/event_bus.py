@@ -16,8 +16,8 @@ class EventBus:
 
             # Create save event to log everything
             self.redis.publish("event.save", json.dumps({
-                "type": event_name,
                 **data,
+                "type": event_name, # Type second to prevent overwriting with data dictionary.
             }))
         except Exception as e:
             print(f"Failed to publish event {event_name}: {e}")
