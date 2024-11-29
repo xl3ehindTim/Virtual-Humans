@@ -23,3 +23,14 @@ services:
       - ./data/postgres:/var/lib/postgresql/data
     ports:
       - 5434:5432
+
+  redis:
+    image: redis:6
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:

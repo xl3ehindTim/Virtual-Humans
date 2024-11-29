@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "users",
+    "events",
 ]
 
 MIDDLEWARE = [
@@ -122,3 +123,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "users.User"
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = None
+
+REDIS_HOST = "redis"
+REDIS_PORT = 6379

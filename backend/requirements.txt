@@ -264,3 +264,4 @@ channels
 daphne
 fer
 tensorflow
+numpy==1.26.0

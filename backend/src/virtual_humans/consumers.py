@@ -1,40 +1,25 @@
 from channels.generic.websocket import WebsocketConsumer
-from fer import FER
+from django.utils import timezone
+
+from events.event_bus import event_bus
 
 import json
-import cv2
-import base64
-import numpy as np
 
 
 class VirtualHumanConsumer(WebsocketConsumer):
     def connect(self):
-        """
-        Called when a client connects
-        """
+        """ Handles WebSocket connection """
+
+        event_bus.subscribe("event.virtual_human", self.virtual_human_event_handler)
+        event_bus.start_listener("event.virtual_human")
+
         self.accept()
-        self.__init_processor()
+
+        # Send connection confirmation
         self.send(text_data=json.dumps({
             'type': 'connection_established',
             'message': 'success',
         }))
-
-    def __init_processor(self) -> None:
-        self.detector = FER(mtcnn=True)
-
-    def __base64_to_frame(self, base64_string: str):
-        """
-        Convert base64-encoded string back to a frame.
-        """
-        frame_bytes = base64.b64decode(base64_string)
-
-        if not isinstance(frame_bytes, np.ndarray):
-            frame_bytes = np.frombuffer(frame_bytes, dtype=np.uint8)
-        frame = cv2.imdecode(frame_bytes, cv2.IMREAD_COLOR)
-        return frame
-
-    def __process_frame(self, frame):
-        return self.detector.detect_emotions(frame)
 
     def receive(self, text_data=None, bytes_data=None) -> None:
         """
@@ -43,24 +28,37 @@ class VirtualHumanConsumer(WebsocketConsumer):
         if not text_data:
             return
 
+        # Parse text_data to JSON
         data = json.loads(text_data)
-        
         type = data.get("type")
+        
+        # data.pop("type", None)
+        
+        # TODO: Validation
+
+        # Build event payload
+        payload = {
+            **data,
+            "timestamp": timezone.now().isoformat()
+        }
 
         if type == "image":
-            frame = self.__base64_to_frame(data.get("data"))
-            emotions = self.__process_frame(frame=frame)
+            event_bus.publish("event.image", payload)
 
-            self.send(text_data=json.dumps({
-                'type': 'emotions',
-                'emotions': emotions[0].get("emotions") if len(emotions) > 0 else {}
-            }))
+        # if type == "text":
+        #     event_bus.publish("event.text", payload)
+            
+        # if type == "t":
+        #     event_bus.publish("event.virtual_human", { 
+        #         "type": "behaviour",
+        #         "data": {
+        #             "a": 1
+        #         }
+        #     })
 
-        elif type == "audio":
-            pass
-
-    def disconnect(self, close_code):
-        """
-        Called when the socket closes
-        """
-        pass
+    def virtual_human_event_handler(self, data):
+        """ Send actionable behaviour and responses to Virtual Human """
+        self.send(text_data=json.dumps({
+            "type": data.get("type"),
+            "payload": data
+        }))
