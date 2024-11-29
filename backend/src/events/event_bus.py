@@ -13,6 +13,12 @@ class EventBus:
         """Publish an event with data."""
         try:
             self.redis.publish(event_name, json.dumps(data))
+
+            # Create save event to log everything
+            self.redis.publish("event.save", json.dumps({
+                "type": event_name,
+                **data,
+            }))
         except Exception as e:
             print(f"Failed to publish event {event_name}: {e}")
 
