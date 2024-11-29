@@ -5,27 +5,18 @@ import cv2
 import base64
 import numpy as np
 
+from django.utils import timezone
+
 from events.event_bus import event_bus
 
 
-def on_event(data):
-    print(data)
-
-event_bus.subscribe("event.image", on_event)
-event_bus.start_listener("event.image")
-
-
-def on_event_hoi(data):
-    print("hoi")
-
-event_bus.subscribe("event.hoi", on_event_hoi)
-event_bus.start_listener("event.hoi")
-
 class VirtualHumanConsumer(WebsocketConsumer):
     def connect(self):
-        """
-        Called when a client connects
-        """
+        """ Handles WebSocket connection """
+
+        event_bus.subscribe("event.virtual_human", self.virtual_human_event_handler)
+        event_bus.start_listener("event.virtual_human")
+
         self.accept()
 
         # Send connection confirmation
@@ -52,15 +43,36 @@ class VirtualHumanConsumer(WebsocketConsumer):
         if not text_data:
             return
 
+        # Parse text_data to JSON
         data = json.loads(text_data)
         type = data.get("type")
+        # data.pop("type", None)
+
+        # TODO: Validation
+
+        # Build event payload
+        payload = {
+            **data,
+            "timestamp": timezone.now().isoformat()
+        }
 
         if type == "image":
-            # event_bus.publish("event.image", {**data, "timestamp": datetime.utcnow().isoformat() + "Z" })
-            event_bus.publish("event.image", {**data})
+            event_bus.publish("event.image", payload)
 
-        if type == "hoi":
-            event_bus.publish("event.hoi", {})
-        # elif type == "audio":
-        #     pass
+        # if type == "text":
+        #     event_bus.publish("event.text", payload)
+            
+        # if type == "t":
+        #     event_bus.publish("event.virtual_human", { 
+        #         "type": "behaviour",
+        #         "data": {
+        #             "a": 1
+        #         }
+        #     })
 
+    def virtual_human_event_handler(self, data):
+        """ Send actionable behaviour and responses to Virtual Human """
+        self.send(text_data=json.dumps({
+            "type": data.get("type"),
+            "payload": data
+        }))
