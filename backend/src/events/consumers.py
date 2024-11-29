@@ -1,10 +1,28 @@
 from events.models import Event
 from events.event_bus import event_bus
+from events.services import emotion_service
 
-def on_event(data):
-    print('test2')
+from django.utils import timezone
 
-event_bus.subscribe("event.image", on_event)
+
+def process_emotions(params):
+    payload = params.get("payload")
+    raw_data = payload.get("data")
+
+    emotions = emotion_service.detect_emotions(raw_data)
+
+    payload = {
+        'type': 'emotion.analysis', 
+        'payload': {
+            'data': emotions,
+            'timestamp': timezone.now().isoformat()
+        }
+    }
+
+    event_bus.publish("emotion.analysis", payload)
+
+
+event_bus.subscribe("event.image", process_emotions)
 event_bus.start_listener("event.image")
 
 
