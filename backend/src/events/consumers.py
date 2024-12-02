@@ -34,6 +34,7 @@ def process_emotions(params):
 
     emotions = emotion_service.detect_emotions(data)
     
+    # TODO: Formatting?
     payload = {
         'type': 'emotion.analysis', 
         'payload': {
@@ -76,3 +77,5 @@ def initialize_listeners():
     # Start listeners
     event_bus.start_listener("event.image")
     event_bus.start_listener("event.save")
+
+    event_bus.start_listener("event.virtual_human")
