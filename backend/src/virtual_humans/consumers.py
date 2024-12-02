@@ -2,7 +2,7 @@ from channels.generic.websocket import WebsocketConsumer
 from django.utils import timezone
 
 from events.event_bus import event_bus
-
+from events.services import llm_service
 import json
 
 
@@ -11,7 +11,6 @@ class VirtualHumanConsumer(WebsocketConsumer):
         """ Handles WebSocket connection """
 
         event_bus.subscribe("event.virtual_human", self.virtual_human_event_handler)
-        event_bus.start_listener("event.virtual_human")
 
         self.accept()
 
@@ -20,6 +19,11 @@ class VirtualHumanConsumer(WebsocketConsumer):
             'type': 'connection_established',
             'message': 'success',
         }))
+
+    def disconnect(self, close_code):
+        """ Unsubscribe on disconnect to avoid memory leaks """
+        if "event.virtual_human" in event_bus.subscribers:
+            event_bus.subscribers["event.virtual_human"].remove(self.virtual_human_event_handler)
 
     def receive(self, text_data=None, bytes_data=None) -> None:
         """
@@ -32,8 +36,6 @@ class VirtualHumanConsumer(WebsocketConsumer):
         data = json.loads(text_data)
         type = data.get("type")
         
-        # data.pop("type", None)
-        
         # TODO: Validation
 
         # Build event payload
@@ -45,20 +47,14 @@ class VirtualHumanConsumer(WebsocketConsumer):
         if type == "image":
             event_bus.publish("event.image", payload)
 
-        # if type == "text":
-        #     event_bus.publish("event.text", payload)
+        if type == "text":
+            event_bus.publish("event.text", payload)
             
-        # if type == "t":
-        #     event_bus.publish("event.virtual_human", { 
-        #         "type": "behaviour",
-        #         "data": {
-        #             "a": 1
-        #         }
-        #     })
-
     def virtual_human_event_handler(self, data):
         """ Send actionable behaviour and responses to Virtual Human """
         self.send(text_data=json.dumps({
             "type": data.get("type"),
             "payload": data
         }))
+
+        
