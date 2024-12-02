@@ -1,9 +1,29 @@
 from events.models import Event
 from events.event_bus import event_bus
-from events.services import emotion_service
+from events.services import emotion_service, llm_service
 
 from django.utils import timezone
 
+
+def generate_response(params):
+    payload = params.get("payload")
+    data = payload.get("data")
+
+    # emotions = emotion_service.detect_emotions(data)
+
+    response = llm_service.generate_text(data)
+
+    # TODO: Formatting?
+    payload = {
+        'type': 'response.text', 
+        'payload': {
+            'data': response,
+        },
+        'timestamp': timezone.now().isoformat()
+    }
+
+    event_bus.publish("event.virtual_human", payload)
+    
 
 def process_emotions(params):
     """
@@ -67,15 +87,3 @@ def save_event(params):
         timestamp=params.get("timestamp"),
         data=params.get("payload"),
     )
-
-
-def initialize_listeners():
-    # Subscribe handlers
-    event_bus.subscribe("event.image", process_emotions)
-    event_bus.subscribe("event.save", save_event)
-
-    # Start listeners
-    event_bus.start_listener("event.image")
-    event_bus.start_listener("event.save")
-
-    event_bus.start_listener("event.virtual_human")

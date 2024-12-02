@@ -2,7 +2,6 @@ from channels.generic.websocket import WebsocketConsumer
 from django.utils import timezone
 
 from events.event_bus import event_bus
-from events.services import llm_service
 import json
 
 
