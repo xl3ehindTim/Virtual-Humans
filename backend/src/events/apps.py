@@ -9,5 +9,5 @@ class EventsConfig(AppConfig):
         """
         Override app configuration to initialize consumers
         """
-        from backend.src.events.subscribers import initialize_listeners
+        from events.subscribers import initialize_listeners
         initialize_listeners()
