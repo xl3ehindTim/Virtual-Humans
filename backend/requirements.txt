@@ -260,6 +260,7 @@ zope-interface==5.5.2
     # via twisted
 zopfli==0.2.2
     # via fonttools
+cmake
 channels
 daphne
 fer
@@ -267,3 +268,4 @@ tensorflow
 numpy==1.26.0
 openai
 redis
+face_recognition
