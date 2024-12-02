@@ -38,22 +38,22 @@ class VirtualHumanConsumer(WebsocketConsumer):
         # TODO: Validation
 
         # Build event payload
-        payload = {
+        message = {
             **data,
-            "timestamp": timezone.now().isoformat()
+            "timestamp": timezone.now().isoformat(),
         }
-
+        
         if type == "image":
-            event_bus.publish("event.image", payload)
+            event_bus.publish("event.image", message)
 
         if type == "text":
-            event_bus.publish("event.text", payload)
+            event_bus.publish("event.text", message)
             
     def virtual_human_event_handler(self, data):
         """ Send actionable behaviour and responses to Virtual Human """
         self.send(text_data=json.dumps({
             "type": data.get("type"),
-            "payload": data
+            "payload": data.get("payload"),
+            "timestamp": data.get("timestamp"),
+            "metadata": data.get("metadata") or {}
         }))
-
-        

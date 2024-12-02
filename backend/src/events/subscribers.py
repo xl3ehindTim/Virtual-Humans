@@ -1,4 +1,4 @@
-from events.handlers import process_emotions, generate_response, save_event
+from events.handlers import *
 from events.event_bus import event_bus
 
 
@@ -9,6 +9,8 @@ def initialize_listeners():
 
     # Subscribe handlers
     event_bus.subscribe("event.image", process_emotions)
+    event_bus.subscribe("event.image", face_recognition)
+    
     event_bus.subscribe("event.text", generate_response)
     event_bus.subscribe("event.save", save_event)
 
