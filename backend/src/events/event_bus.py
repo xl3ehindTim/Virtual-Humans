@@ -8,6 +8,7 @@ class EventBus:
     def __init__(self):
         self.redis = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, decode_responses=True)
         self.subscribers = {}
+        self.lock = threading.Lock()
 
     def publish(self, event_name, data):
         """Publish an event with data."""
@@ -17,16 +18,17 @@ class EventBus:
             # Create save event to log everything
             self.redis.publish("event.save", json.dumps({
                 **data,
-                "type": event_name, # Type second to prevent overwriting with data dictionary.
+                "type": event_name,
             }))
         except Exception as e:
             print(f"Failed to publish event {event_name}: {e}")
 
     def subscribe(self, event_name, handler):
         """Subscribe a handler function to an event."""
-        if event_name not in self.subscribers:
-            self.subscribers[event_name] = []
-        self.subscribers[event_name].append(handler)
+        with self.lock:
+            if event_name not in self.subscribers:
+                self.subscribers[event_name] = []
+            self.subscribers[event_name].append(handler)
 
     def _event_listener(self, event_name):
         """Internal listener for Redis pub/sub."""
@@ -38,11 +40,12 @@ class EventBus:
                 if message["type"] == "message":
                     try:
                         data = json.loads(message["data"])
-                        for handler in self.subscribers.get(event_name, []):
-                            try:
-                                handler(data)
-                            except Exception as handler_error:
-                                print(f"Error in handler for {event_name}: {handler_error}")
+                        with self.lock:
+                            for handler in self.subscribers.get(event_name, []):
+                                try:
+                                    handler(data)
+                                except Exception as handler_error:
+                                    print(f"Error in handler for {event_name}: {handler_error}")
                     except json.JSONDecodeError as e:
                         print(f"Failed to decode message: {e}")
         except Exception as e:
