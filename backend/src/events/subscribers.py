@@ -14,8 +14,8 @@ def initialize_listeners():
     event_bus.subscribe("event.text", generate_response)
     event_bus.subscribe("event.save", save_event)
 
-    # Start listeners for each event type
-    event_bus.start_listener("event.image")
-    event_bus.start_listener("event.text")
+    # Start listeners for each event type 
+    event_bus.start_listener("event.image") # rename: video.frame?
+    event_bus.start_listener("event.text") # rename: audio.transcription?
     event_bus.start_listener("event.save")
     event_bus.start_listener("event.virtual_human")

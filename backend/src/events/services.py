@@ -33,7 +33,7 @@ class LLMService:
         self.model_name = model_name
         self.client = OpenAI(api_key=self.api_key)
 
-    def generate_text(self, prompt: str, max_tokens=100, temperature=0.7):
+    def generate_text(self, context, max_tokens=1000, temperature=0.7):
         """
         Generate text from a given prompt using the LLM.
 
@@ -48,7 +48,7 @@ class LLMService:
         try:
             completion = self.client.chat.completions.create(
                 model=self.model_name,
-                messages=[{"role": "user", "content": prompt}],
+                messages=context,
                 max_tokens=max_tokens,
                 temperature=temperature,
             )

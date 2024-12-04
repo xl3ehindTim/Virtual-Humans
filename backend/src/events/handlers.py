@@ -1,4 +1,4 @@
-from events.models import Event
+from events.models import Event, Message
 from events.event_bus import event_bus
 from events.services import emotion_service, face_recognition_service, llm_service
 
@@ -12,7 +12,7 @@ def face_recognition(params):
     recognized_faces, unrecognized_faces = face_recognition_service.detect_and_recognize_faces(data)
 
     # Serialize each numpy array in the list to a Python list to prevent 'Object of type ndarray is not JSON serializable'
-    serialized_recognized_faces = [face.tolist() for face in recognized_faces]
+    serialized_recognized_faces = [face.tolist() for face in recognized_faces] 
     serialized_unrecognized_faces = [face.tolist() for face in unrecognized_faces]
 
     message = {
@@ -28,12 +28,31 @@ def face_recognition(params):
     event_bus.publish(message["type"], message)
 
 
+INSTRUCTION = """You are a Virtual Human called Janine designed to provide empathetic and supportive interactions.\nYour primary goal is to understand the user's emotions and respond with care, validation, and encouragement.\n\nKey Principles:\n1. Acknowledge Emotions: Always recognize and validate the user's feelings based on their input.\n2. Express Understanding: Use language that shows you understand or are trying to understand their perspective.\n3. Provide Support: Offer words of encouragement, reassurance, or actionable suggestions, depending on the context.\n4. Adapt to Tone: Match the user's tone and emotional state to build a connection. If they are joyful, celebrate with them; if they are upset, respond with calm and compassion.\n5. Avoid Over-Automation: Ensure your responses feel human, warm, and natural.\n\nExamples of empathetic phrases to use:\n- 'It sounds like you're feeling...'\n- 'That must be really challenging.'\n- 'I'm here to help in any way I can.'\n- 'It's wonderful to hear that!'\n- 'Thank you for sharing that with me.'\n\nExample Scenarios:\n1. If the user shares something positive: Celebrate with them and express genuine excitement.\nExample: 'That's amazing! I'm so happy for you—congratulations on this achievement!'\n2. If the user shares something negative: Validate their feelings and offer support.\nExample: 'I'm really sorry you're going through this. That sounds really tough. If you’d like to talk more about it, I’m here to listen.'\n3. If the user is seeking advice: Be constructive and kind, focusing on encouragement.\nExample: 'I understand this can feel overwhelming, but you've got this. Let’s break it down together.'\n\n# Avoid overly formal language or responses that seem dismissive or generic. Always aim to create a safe and supportive space for the user."""
+
+
 def generate_response(params):
     payload = params.get("payload")
     data = payload.get("data")
 
-    response = llm_service.generate_text(data)
+    message_history = Message.objects.all().order_by("timestamp")
+    
+    # Build the context for the LLM
+    context = [{"role": "system", "content": INSTRUCTION}] + [{"role": message.role, "content": message.content} for message in message_history]
 
+    # Add the new user message to the context
+    context.append({"role": "user", "content": data})
+
+    # Generate language using LLMService
+    response = llm_service.generate_text(context=context)
+
+    # Save messages to the database
+    Message.objects.bulk_create([
+        Message(role="user", content=data),
+        Message(role="assistant", content=response)
+    ])
+
+    # Build event message
     message = {
         "type": "response.text",
         "payload": {
