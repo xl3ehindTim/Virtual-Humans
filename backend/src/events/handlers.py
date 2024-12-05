@@ -30,7 +30,7 @@ def face_recognition(params):
 
 def generate_response(params):
     payload = params.get("payload")
-    data = payload.get("data")
+    transcription = payload.get("transcription")
 
     messages = Message.objects.all().order_by("timestamp")
     
@@ -38,22 +38,22 @@ def generate_response(params):
     context = llm_service.build_context(messages=messages)
 
     # Add the new user message to the context
-    context.append({"role": "user", "content": data})
+    context.append({"role": "user", "content": transcription})
 
     # Generate language using LLMService
     response = llm_service.generate_text(context=context)
 
     # Save messages to the database
     Message.objects.bulk_create([
-        Message(role="user", content=data),
+        Message(role="user", content=transcription),
         Message(role="assistant", content=response)
     ])
 
     # Build event message
     message = {
-        "type": "response.text",
+        "type": "event.virtual_human",
         "payload": {
-            "response": response,
+            "transcription": response,
         },
         "timestamp": timezone.now().isoformat(),
         "metadata": None,
