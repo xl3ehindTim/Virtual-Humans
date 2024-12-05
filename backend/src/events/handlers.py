@@ -51,7 +51,7 @@ def generate_response(params):
 
     # Build event message
     message = {
-        "type": "event.virtual_human",
+        "type": "assistant.response",
         "payload": {
             "transcription": response,
         },

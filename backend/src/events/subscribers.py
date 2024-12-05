@@ -16,4 +16,4 @@ def initialize_listeners():
     event_bus.start_listener("video.frame") 
     event_bus.start_listener("audio.transcription") 
     event_bus.start_listener("event.save")
-    event_bus.start_listener("event.virtual_human")
+    event_bus.start_listener("assistant.response")
