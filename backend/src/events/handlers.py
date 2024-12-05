@@ -1,8 +1,33 @@
 from events.models import Event, Message
 from events.event_bus import event_bus
-from events.services import emotion_service, face_recognition_service, llm_service
+from events.services import emotion_service, face_recognition_service, llm_service, AudioTranscriptionService
 
 from django.utils import timezone
+
+import base64
+
+
+def process_raw_audio(params):
+    payload = params.get("payload")
+    
+    # Decode the audio from base64
+    wav_data = base64.b64decode(payload.get("bytes"))
+
+    transcription_service = AudioTranscriptionService()
+    transcription = transcription_service.transcribe_audio(audio_bytes=wav_data, sample_rate=payload.get("sample_rate"), sample_width=payload.get("sample_width"))
+    
+    if transcription:
+        message = {
+            "type": "audio.transcription",
+            "payload": {
+                "transcription": transcription,
+            },
+            "timestamp": timezone.now().isoformat(),
+            "metadata": None,
+        }
+
+        # Publish transcription
+        event_bus.publish(message["type"], message)
 
 
 def face_recognition(params):
