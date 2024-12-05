@@ -5,8 +5,52 @@ from .utils import base64_to_frame
 from fer import FER
 from openai import OpenAI
 import face_recognition
+import speech_recognition as sr
 
 import cv2
+
+
+class AudioTranscriptionService:
+    """
+    A service class for transcribing audio to text using speech recognition.
+
+    This class uses the SpeechRecognition library and the Google Web Speech API to transcribe
+    audio data into text. The language for transcription can be customized during initialization.
+    By default, the class uses Dutch ("nl-NL") as the transcription language.
+
+    Attributes:
+        language (str): The language to be used for transcription. Defaults to "nl-NL".
+        recognizer (Recognizer): The SpeechRecognition recognizer instance used for processing audio.
+    """
+        
+    def __init__(self, language="nl-NL"):
+        self.recognizer = sr.Recognizer()
+        self.language = language
+
+    def transcribe_audio(self, audio_bytes, sample_rate=44100, sample_width=2):
+        """
+        Transcribes the given audio bytes to text.
+
+        This method accepts raw audio bytes, converts them to an AudioData object, and uses the
+        Google Web Speech API to transcribe the audio to text.
+
+        Args:
+            audio_bytes (bytes): The raw audio data in bytes format, typically in WAV format.
+            sample_rate (int): The sample rate of the audio (default is 44100 Hz).
+            sample_width (int): The sample width of the audio (default is 2 bytes).
+
+        Returns:
+            str or None: The transcribed text if successful, None if transcription fails.
+        """
+        audio_data = sr.AudioData(audio_bytes, sample_rate, sample_width)
+        
+        try:
+            transcription = self.recognizer.recognize_google(audio_data, language=self.language)
+            return transcription
+        except sr.UnknownValueError:
+            return None
+        except sr.RequestError as e:
+            return None
 
 
 class LLMService:
