@@ -25,14 +25,24 @@ The events app contains the event-driven architecture components, including hand
 
 ## Event schema
 
-Event name | Description | Input |
---- | --- | --- |
-`audio.raw` | Raw audio bytes captured from a source | `{ "payload": { "bytes": "<base64-encoded-audio>" }}` |
-`audio.transcription` | Transcribed text from audio | `{ "payload": { "transcription": "<transcription>" }}` |
-`video.frame` | Video feed frames | `{ "payload": { "data": "<base64-encoded-image>" }}` |
-`assistant.response`  | AI agent response message | `{ "payload": { "transcription": "<transcription>" }}` |
-`event.save`  | Event to trigger event storage into the database | `{ "type": "<domain.action>", "payload": { <event data> }, "timestamp": "<iso-8601-timestamp>", "metadata": { <metadata> } }` |
+Event name | Description | Input | Triggered by
+--- | --- | --- | --- |
+`audio.raw` | Raw audio bytes captured from a source | `{ "payload": { "bytes": "<base64-encoded-audio>" }}` | |
+`audio.transcription` | Transcribed text from audio | `{ "payload": { "transcription": "<transcription>" }}` | `audio.raw` |
+`video.frame` | Video feed frames | `{ "payload": { "data": "<base64-encoded-image>" }}` |  |
+`face.detected` | Detects faces from a video frame | `{ "payload": { "data": "<base64-encoded-image>" }}` | `video.frame` |
+`face.emotion` | Detects emotions from faces in a video frame | `{ "payload": { "data": "<base64-encoded-image>" }}` | `face.detected` |
+`assistant.response`  | AI agent response message | `{ "payload": { "transcription": "<transcription>" }}` | `audio.transcription` | 
+`event.save`  | Event to trigger event storage into the database | `{ "type": "<domain.action>", "payload": { <event data> }, "timestamp": "<iso-8601-timestamp>", "metadata": { <metadata> } }` |  |
 
+<!-- `face.unrecognized` | Faces detected but not recognized | `{ "payload": { "faces": [ { "encoding": "<face-encoding>" "} ] }}` |
+`face.emotion` | Analyzed emotions of detected faces | `{ "payload": { "faces": [ { "id": "<face-id>", "emotions": { "happy": 0.8, "sad": 0.1, "neutral": 0.1 } } ] } }` | -->
+
+<!--
+`face.recognized` | Recognized faces from a video frame | `{ "payload": { "faces": [ { "id": "<user-id>", "encoding": "<face-encoding>" "} ] }}` |
+`face.unrecognized` | Faces detected but not recognized | `{ "payload": { "faces": [ { "encoding": "<face-encoding>" "} ] }}` |
+`face.emotion` | Analyzed emotions of detected faces | `{ "payload": { "faces": [ { "id": "<face-id>", "emotions": { "happy": 0.8, "sad": 0.1, "neutral": 0.1 } } ] } }` |
+-->
 <!--- Table row
 Event name | Description | Input |  
 --->
