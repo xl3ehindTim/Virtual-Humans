@@ -12,14 +12,13 @@ class VirtualHumanConsumer(WebsocketConsumer):
 
         self.accept()
 
-        # Send connection confirmation
         self.send(text_data=json.dumps({
             'type': 'connection_established',
             'message': 'success',
         }))
 
     def disconnect(self, close_code):
-        """ Unsubscribe on disconnect to avoid memory leaks """
+        """ Unsubscribe on disconnect to avoid duplicated subscriptions """
         if "assistant.response" in event_bus.subscribers:
             event_bus.subscribers["assistant.response"].remove(self.virtual_human_event_handler)
 
@@ -32,10 +31,6 @@ class VirtualHumanConsumer(WebsocketConsumer):
 
         data = json.loads(text_data)
         type = data.get("type")
-        
-        # TODO: Validation
-        # serializer = MessageSerializer(data=data)
-        # serializer.is_valid(raise_exception=True)
 
         # Build event payload
         message = {
