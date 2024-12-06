@@ -5,8 +5,52 @@ from .utils import base64_to_frame
 from fer import FER
 from openai import OpenAI
 import face_recognition
+import speech_recognition as sr
 
 import cv2
+
+
+class AudioTranscriptionService:
+    """
+    A service class for transcribing audio to text using speech recognition.
+
+    This class uses the SpeechRecognition library and the Google Web Speech API to transcribe
+    audio data into text. The language for transcription can be customized during initialization.
+    By default, the class uses Dutch ("nl-NL") as the transcription language.
+
+    Attributes:
+        language (str): The language to be used for transcription. Defaults to "nl-NL".
+        recognizer (Recognizer): The SpeechRecognition recognizer instance used for processing audio.
+    """
+        
+    def __init__(self, language="nl-NL"):
+        self.recognizer = sr.Recognizer()
+        self.language = language
+
+    def transcribe_audio(self, audio_bytes, sample_rate=44100, sample_width=2):
+        """
+        Transcribes the given audio bytes to text.
+
+        This method accepts raw audio bytes, converts them to an AudioData object, and uses the
+        Google Web Speech API to transcribe the audio to text.
+
+        Args:
+            audio_bytes (bytes): The raw audio data in bytes format, typically in WAV format.
+            sample_rate (int): The sample rate of the audio (default is 44100 Hz).
+            sample_width (int): The sample width of the audio (default is 2 bytes).
+
+        Returns:
+            str or None: The transcribed text if successful, None if transcription fails.
+        """
+        audio_data = sr.AudioData(audio_bytes, sample_rate, sample_width)
+        
+        try:
+            transcription = self.recognizer.recognize_google(audio_data, language=self.language)
+            return transcription
+        except sr.UnknownValueError:
+            return None
+        except sr.RequestError as e:
+            return None
 
 
 class LLMService:
@@ -32,8 +76,15 @@ class LLMService:
         self.api_key = api_key
         self.model_name = model_name
         self.client = OpenAI(api_key=self.api_key)
+        self.instruction = """You are a Virtual Human called Janine designed to provide empathetic and supportive interactions.\nYour primary goal is to understand the user's emotions and respond with care, validation, and encouragement.\n\nKey Principles:\n1. Acknowledge Emotions: Always recognize and validate the user's feelings based on their input.\n2. Express Understanding: Use language that shows you understand or are trying to understand their perspective.\n3. Provide Support: Offer words of encouragement, reassurance, or actionable suggestions, depending on the context.\n4. Adapt to Tone: Match the user's tone and emotional state to build a connection. If they are joyful, celebrate with them; if they are upset, respond with calm and compassion.\n5. Avoid Over-Automation: Ensure your responses feel human, warm, and natural.\n\nExamples of empathetic phrases to use:\n- 'It sounds like you're feeling...'\n- 'That must be really challenging.'\n- 'I'm here to help in any way I can.'\n- 'It's wonderful to hear that!'\n- 'Thank you for sharing that with me.'\n\nExample Scenarios:\n1. If the user shares something positive: Celebrate with them and express genuine excitement.\nExample: 'That's amazing! I'm so happy for you—congratulations on this achievement!'\n2. If the user shares something negative: Validate their feelings and offer support.\nExample: 'I'm really sorry you're going through this. That sounds really tough. If you’d like to talk more about it, I’m here to listen.'\n3. If the user is seeking advice: Be constructive and kind, focusing on encouragement.\nExample: 'I understand this can feel overwhelming, but you've got this. Let’s break it down together.'\n\n# Avoid overly formal language or responses that seem dismissive or generic. Always aim to create a safe and supportive space for the user."""
+    
+    def build_context(self, messages):
+        """
+        Build chat context and append system context.
+        """
+        return [{"role": "system", "content": self.instruction}] + [{"role": message.role, "content": message.content} for message in messages]
 
-    def generate_text(self, prompt: str, max_tokens=100, temperature=0.7):
+    def generate_text(self, context, max_tokens=1000, temperature=0.7):
         """
         Generate text from a given prompt using the LLM.
 
@@ -48,7 +99,7 @@ class LLMService:
         try:
             completion = self.client.chat.completions.create(
                 model=self.model_name,
-                messages=[{"role": "user", "content": prompt}],
+                messages=context,
                 max_tokens=max_tokens,
                 temperature=temperature,
             )

@@ -1,7 +1,8 @@
+from django.conf import settings
+
 import redis
 import threading
 import json
-from django.conf import settings
 
 
 class EventBus:
