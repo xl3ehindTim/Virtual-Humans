@@ -41,7 +41,7 @@ def face_recognition(params):
     serialized_unrecognized_faces = [face.tolist() for face in unrecognized_faces]
 
     message = {
-        "type": "face_recognition.detect",
+        "type": "face.detected",
         "payload": {
             "recognized_faces": serialized_recognized_faces,
             "unrecognized_faces": serialized_unrecognized_faces,
@@ -88,36 +88,13 @@ def generate_response(params):
     
 
 def process_emotions(params):
-    """
-    Process an image event to analyze emotions.
-
-    This function is triggered by the "event.image" event published to the event bus. 
-    It extracts image data from the event payload, performs emotion analysis using the 
-    EmotionService, and publishes a new "emotion.analysis" event with the results.
-
-    Parameters:
-        params (dict): The event payload passed to the function.
-            - payload (dict): Contains the data for the event.
-                - data (str): Base64-encoded image data to be processed.
-
-    Returns:
-        None
-
-    Published Event:
-        Event Name: "emotion.analysis"
-        Payload:
-            - type (str): Type of the event ("emotion.analysis").
-            - payload (dict): Contains the analysis results.
-                - data (dict): A dictionary of detected emotions and their intensities.
-            - timestamp (str): ISO 8601 timestamp of when the event was processed.
-    """     
     payload = params.get("payload")
     data = payload.get("data")
 
     emotions = emotion_service.detect_emotions(data)
 
     message = {
-        "type": "emotion.analysis",
+        "type": "face.emotion",
         "payload": {
             "emotions": emotions,
         },
@@ -125,7 +102,7 @@ def process_emotions(params):
         "metadata": None,
     }
 
-    event_bus.publish("emotion.analysis", message)
+    event_bus.publish(message["type"], message)
 
 
 def save_event(params):
